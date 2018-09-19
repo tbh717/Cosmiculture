@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 212746789605255576}
   - component: {fileID: 60326738176860086}
   - component: {fileID: 114981450679495936}
+  - component: {fileID: 114165325316227220}
   m_Layer: 9
   m_Name: GameTile
   m_TagString: Untagged
@@ -72,6 +73,17 @@ PolygonCollider2D:
       - {x: 0.00000004371139, y: -0.5}
       - {x: 0.43301272, y: -0.24999996}
       - {x: 0.43301272, y: 0.24999996}
+--- !u!114 &114165325316227220
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1960072558996934}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21262ea8cf2656a48b8808f400c5d5ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114981450679495936
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -83,6 +95,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d853181d2feaf4d6fad780189d81b1a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  director: {fileID: 0}
+  primaryColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!212 &212746789605255576
 SpriteRenderer:
   m_ObjectHideFlags: 1
