@@ -26,7 +26,7 @@ public class Tile : MonoBehaviour {
             return Resources.Load<Sprite>("Sprites/Tiles/DirtTileSprite");
         }
         public override string TileText () {
-            return "";
+            return "A fertile field of dirt.";
         }
     }
 
@@ -35,7 +35,9 @@ public class Tile : MonoBehaviour {
             return Resources.Load<Sprite>("Sprites/Tiles/SandTileSprite");
         }
         public override string TileText () {
-            return "";
+            return "A smooth bed of sand, built up over thousands of years from the erosion of this planet's strange stones." 
+            + "\n" +
+            "It's coarse, and rough, and irritating, and it gets everywhere.";
         }
     }
 
@@ -44,7 +46,7 @@ public class Tile : MonoBehaviour {
             return Resources.Load<Sprite>("Sprites/Tiles/GrassTileSprite");
         }
         public override string TileText () {
-            return "";
+            return "Crisp, green grass sparkling with dew.";
         }
     }
 
@@ -53,7 +55,7 @@ public class Tile : MonoBehaviour {
             return Resources.Load<Sprite>("Sprites/Tiles/WaterTileSprite");
         }
         public override string TileText () {
-            return "";
+            return "Soft, rolling waves crest with the wind into sparkling white foam.";
         }
     }
 
