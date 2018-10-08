@@ -1,110 +1,250 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Tile : MonoBehaviour {
 
-    // public GameObject director;
+    private GameObject gameBoard;
 
     private SpriteRenderer sr;
     private Color defaultColor;
 
-    public int score;
-
-    private List<GameObject> neighbors;
+    public List<Tile> neighbors;
 
     public TileType tileType;
-    public GameObject item;
+    
+    public GameObject itemsObj;
+    public GameObject itemPrefab;
+    public GameObject boardItem;
 
-    /* TILE TYPES */
-    public abstract class TileType {
-        public abstract Sprite GetSprite ();
-        public abstract string TileText ();
-    }
+    public GameObject tooltip;
+    GameObject tooltipTextPrefab;
+    int tooltipFontSize;
+    Text scoreText;
 
-    public class DirtTile : TileType {
-        public override Sprite GetSprite () {
-            return Resources.Load<Sprite>("Sprites/Tiles/DirtTileSprite");
-        }
-        public override string TileText () {
-            return "A fertile field of dirt.";
-        }
-    }
+    Color hoverColor;
+    Color hoverNeighborColor;
 
-    public class SandTile : TileType {
-        public override Sprite GetSprite () {
-            return Resources.Load<Sprite>("Sprites/Tiles/SandTileSprite");
-        }
-        public override string TileText () {
-            return "A smooth bed of sand, built up over thousands of years from the erosion of this planet's strange stones." 
-            + "\n" +
-            "It's coarse, and rough, and irritating, and it gets everywhere.";
-        }
-    }
+    public bool tileEnabled;
 
-    public class GrassTile : TileType {
-        public override Sprite GetSprite () {
-            return Resources.Load<Sprite>("Sprites/Tiles/GrassTileSprite");
-        }
-        public override string TileText () {
-            return "Crisp, green grass sparkling with dew.";
-        }
-    }
+    GameObject director;
+    BoardDirector bd;
+    InteractionDirector id;
+    AudioDirector ad;
 
-    public class WaterTile : TileType {
-        public override Sprite GetSprite () {
-            return Resources.Load<Sprite>("Sprites/Tiles/WaterTileSprite");
-        }
-        public override string TileText () {
-            return "Soft, rolling waves crest with the wind into sparkling white foam.";
+    // Interaction
+    public delegate void TileUpdate(Tile tile);
+    public event TileUpdate onTileFocus;
+    public event TileUpdate onTileUnfocus;
+    public event TileUpdate onTileClick;
+
+    public delegate void TileItemUpdate(Item item, Tile tile);
+    public event TileItemUpdate itemPlaced;
+    public event TileItemUpdate itemRemoved;
+
+    // Score updating
+    public delegate void ScoreChange();
+    public event ScoreChange scoreChange;
+
+    public Item Item {
+        get {
+            if(boardItem != null) return boardItem.GetComponent<ItemComponent>().Item;
+            else return null;
         }
     }
 
 	// Use this for initialization
 	void Start() {
-        // director = GameObject.Find("Director");
+        gameBoard = transform.parent.gameObject;
+
         sr = transform.GetComponent<SpriteRenderer>();
 		defaultColor = sr.color;
         neighbors = AssignNeighbors();
-        item = null;
 
-        score = 0;
+        tooltipTextPrefab = (GameObject) Resources.Load("Prefabs/UI/TooltipText");
+        tooltipFontSize = 24;
+
+        itemPrefab = Resources.Load<GameObject>("Prefabs/Board/BoardItem");
+        boardItem = null;
+        itemsObj = GameObject.Find("Items");
+
+        hoverColor = new Color(0.5f,0.5f,0.5f);
+        hoverNeighborColor = new Color(1f, 0.6f, 0.6f);
+
+        director = GameObject.Find("Director");
+        id = director.GetComponent<InteractionDirector>();
+        bd = director.GetComponent<BoardDirector>();
+        ad = GameObject.Find("AudioController").GetComponent<AudioDirector>();
+
+        onTileUnfocus += ad.UnfocusTileAudio;
+        onTileFocus += ad.FocusTileAudio;
+        onTileClick += id.OnTileClick;
+        scoreChange += bd.ScoreChange;
+
+        itemPlaced += ad.AddItemAudio;
+        itemRemoved += ad.RemoveItemAudio;
+
+        Disable();
 	}
+
+    public void Disable() { tileEnabled = false; }
+    public void Enable() { tileEnabled = true; } 
 	
-	// Update is called once per frame
-	void Update() {
-		
-	}
-
-    void OnMouseEnter() {
-        sr.color = new Color(0.5f,0.5f,0.5f);
-    }
-
-    void OnMouseExit() {
-        sr.color = defaultColor;
-    }
-
-    public void SetTileType(TileType tt) {
-        tileType = tt;
-        transform.GetComponent<SpriteRenderer>().sprite = tileType.GetSprite();
-    }
-
-    private List<GameObject> AssignNeighbors() {
+	private List<Tile> AssignNeighbors() {
         LayerMask hexLayer = LayerMask.NameToLayer("Hex");
         Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(
             new Vector2(transform.position.x, transform.position.y),
             new Vector2(2f, 2f), 0f,
             layerMask: hexLayer);
-        List<GameObject> overlappingObjects = new List<GameObject>();
+        List<Tile> overlappingObjects = new List<Tile>();
         for(int i = 0; i < overlappingColliders.Length; ++i) {
             GameObject obj = overlappingColliders[i].gameObject;
             // Don't add self to list
-            if(gameObject != obj) overlappingObjects.Add(obj);
+            if(gameObject != obj) {
+                Tile posTile = obj.GetComponent<Tile>();
+                if(posTile != null) overlappingObjects.Add(posTile);
+            }
         }
         return overlappingObjects;
     }
 
-    public int GetScore () {
+    /* MOUSE INTERACTION */
+
+    void OnMouseEnter() {
+        if(tileEnabled) {
+            onTileFocus(this);
+            DarkenColor();
+            tooltip.SetActive(true);
+        }
+    }
+
+    void OnMouseOver() {
+        if(tileEnabled) {
+            Vector2 ttSize = tooltip.GetComponent<RectTransform>().sizeDelta;
+            Vector2 mousePos = Input.mousePosition;
+            Vector2 newPos;
+
+            // Check if mouse is low on screen
+            Vector2 mousePosWorld = Camera.main.ScreenToWorldPoint(mousePos);
+            float newX;
+            float newY;
+            if(mousePosWorld.x > gameBoard.transform.position.x) newX = ttSize.x/2; 
+            else newX = ttSize.x/-2;
+            if(mousePosWorld.y > gameBoard.transform.position.y) newY = ttSize.y/-2; 
+            else newY = ttSize.y/2;
+            newPos = mousePos + new Vector2(newX, newY);
+
+            tooltip.transform.position = newPos;
+        }
+    }
+
+    void OnMouseExit() {
+        onTileUnfocus(this);
+        ResetColor();
+        tooltip.SetActive(false);
+    }
+
+    void OnMouseDown() {
+        onTileClick(this);
+    }
+
+    public void SetTileType(TileType tt) {
+        tileType = tt;
+        transform.GetComponent<SpriteRenderer>().sprite = tileType.Sprite;
+    }
+
+    public void DarkenColor() {
+        sr.color = hoverColor;
+    }
+
+    public void ResetColor() {
+        sr.color = defaultColor;
+    }
+
+    public bool AddItem(Item newItem) {
+        if(boardItem == null) {
+            GameObject bi = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+            boardItem = bi;
+
+            bi.transform.SetParent(itemsObj.transform, true);
+            bi.transform.position = new Vector3(bi.transform.position.x, bi.transform.position.y, itemsObj.transform.position.z);
+
+            bi.GetComponent<ItemComponent>().Item = newItem;
+            bi.GetComponent<ItemComponent>().Item.Tile = this;
+            bi.GetComponent<SpriteRenderer>().sprite = newItem.Sprite;
+            if(newItem is Colored) bi.GetComponent<SpriteRenderer>().color = (newItem as Colored).ItemColor.Color;
+
+            UpdateTooltip();
+            scoreChange();
+
+            itemPlaced(newItem, this);
+
+            return true;
+        }
+        else return false;
+    }
+
+    // Returns true if item was successfully removed
+    public bool RemoveItem() {
+        if(boardItem != null) {
+            itemRemoved(boardItem.GetComponent<ItemComponent>().Item, this);
+            Destroy(boardItem);
+            boardItem = null;
+            return true;
+        }
+        else return false;
+    }
+
+    // Doesn't care if item was there or not
+    public bool ChangeItem(Item newItem) {
+        RemoveItem();
+        return AddItem(newItem);
+    }
+
+    public Text AddTooltipText(string t, float fs) {
+        GameObject tileDescrip = Instantiate(tooltipTextPrefab, transform.position, Quaternion.identity);
+        tileDescrip.transform.SetParent(tooltip.transform);
+        Text text = tileDescrip.GetComponent<Text>();
+        text.text = t;
+        text.fontSize = Mathf.RoundToInt(fs);
+        return text;
+    }
+
+    public void UpdateTooltip() {
+        // Delete all text items in tooltip
+        foreach(Transform tooltipText in tooltip.transform) {
+            Destroy(tooltipText.gameObject);
+        }
+
+        /* SPAWN NEW TEXT ITEMS */
+        // Tile name
+        Text tileName = AddTooltipText("<b>"+tileType.TileName.ToUpper()+"</b>", tooltipFontSize*1.25f);
+        // Tile description
+        AddTooltipText(tileType.TileText, tooltipFontSize);
+        AddTooltipText("------", tooltipFontSize);
+        if(boardItem != null) {
+            ItemInfo itemInfo = boardItem.GetComponent<ItemComponent>().Item.Info;
+            Text itemName = AddTooltipText(itemInfo.ItemName.ToUpper() + " (" + itemInfo.ItemType + ")", tooltipFontSize*1.25f);
+            itemName.fontStyle = FontStyle.Bold;
+            if(Item is Colored) itemName.color = (Item as Colored).ItemColor.Color;
+            AddTooltipText(itemInfo.ItemDescription, tooltipFontSize);
+            AddTooltipText(itemInfo.ScoreDescription, tooltipFontSize);
+            AddTooltipText("------", tooltipFontSize*1.25f);
+        }
+        scoreText = AddTooltipText("SCORETEXT", tooltipFontSize*1.25f);
+        GetScore(); // also updates scoretext
+    }
+
+    private string ToolTipScoreText(int score) {
+        return "<b>" + score + "</b> <i>HARMONY</i>";
+    }
+
+    public int GetScore() {
+        int score;
+        if(boardItem != null) score = boardItem.GetComponent<ItemComponent>().Item.Score();
+        else score = 0;
+        scoreText.text = ToolTipScoreText(score);
         return score;
     }
 }

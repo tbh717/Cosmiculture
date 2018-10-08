@@ -53,16 +53,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Board\BoardManager.cs" />
-     <Compile Include="Assets\Scripts\Board\Card.cs" />
      <Compile Include="Assets\Scripts\Board\Tile.cs" />
+     <Compile Include="Assets\Scripts\Board\TileType.cs" />
+     <Compile Include="Assets\Scripts\Cards\Card.cs" />
+     <Compile Include="Assets\Scripts\Cards\Cardbox.cs" />
+     <Compile Include="Assets\Scripts\Cards\CardDeck.cs" />
+     <Compile Include="Assets\Scripts\Cards\HeldCard.cs" />
+     <Compile Include="Assets\Scripts\Directors\AudioDirector.cs" />
+     <Compile Include="Assets\Scripts\Directors\BoardDirector.cs" />
+     <Compile Include="Assets\Scripts\Directors\GameDirector.cs" />
+     <Compile Include="Assets\Scripts\Directors\InteractionDirector.cs" />
+     <Compile Include="Assets\Scripts\Effects\Parallax.cs" />
+     <Compile Include="Assets\Scripts\EndGame.cs" />
+     <Compile Include="Assets\Scripts\GameState.cs" />
+     <Compile Include="Assets\Scripts\Items\Crop.cs" />
+     <Compile Include="Assets\Scripts\Items\Decor.cs" />
      <Compile Include="Assets\Scripts\Items\Flora.cs" />
-     <Compile Include="Assets\Scripts\Items\Item.cs" />
-     <Compile Include="Assets\Scripts\Main\CutsceneManager.cs" />
-     <Compile Include="Assets\Scripts\Main\InteractionManager.cs" />
-     <Compile Include="Assets\Scripts\Main\ScoreManager.cs" />
-     <Compile Include="Assets\Scripts\Main\TurnManager.cs" />
-     <Compile Include="Assets\Scripts\Parallax.cs" />
+     <Compile Include="Assets\Scripts\Items\ItemClasses.cs" />
+     <Compile Include="Assets\Scripts\Items\ItemComponent.cs" />
+     <Compile Include="Assets\Scripts\StartGame.cs" />
  <Reference Include="UnityEditor.StandardEvents">
  <HintPath>C:/Users/TBH71/Documents/game-dev/cosmiculture/cosmilcuture-game/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
  </Reference>
