@@ -57,6 +57,12 @@ public class InteractionDirector : MonoBehaviour {
                 selectedCardbox.CardPlaced();
             }
         }
+        else {
+            if(tile.Item is Crop) {
+                Crop crop = tile.Item as Crop;
+                if(crop.Harvestable) tile.Harvested();
+            }
+        }
     }
 
     public void ChangeState(GameState newState) {

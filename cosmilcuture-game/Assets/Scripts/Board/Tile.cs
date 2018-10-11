@@ -22,6 +22,7 @@ public class Tile : MonoBehaviour {
     GameObject tooltipTextPrefab;
     int tooltipFontSize;
     Text scoreText;
+    Text harvestText;
 
     Color hoverColor;
     Color hoverNeighborColor;
@@ -46,6 +47,11 @@ public class Tile : MonoBehaviour {
     // Score updating
     public delegate void ScoreChange();
     public event ScoreChange scoreChange;
+    public delegate void AddScore(int addScore);
+    public event AddScore scoreAdd;
+
+    public delegate void CropHarvested();
+    public event CropHarvested cropHarvested;
 
     public Item Item {
         get {
@@ -81,14 +87,20 @@ public class Tile : MonoBehaviour {
         onTileFocus += ad.FocusTileAudio;
         onTileClick += id.OnTileClick;
         scoreChange += bd.ScoreChange;
+        scoreAdd += bd.AddScore;
 
         itemPlaced += ad.AddItemAudio;
         itemRemoved += ad.RemoveItemAudio;
 
+        cropHarvested += ad.HarvestedCrop;
+
         Disable();
 	}
 
-    public void Disable() { tileEnabled = false; }
+    public void Disable() { 
+        tileEnabled = false;
+        onTileUnfocus(this);
+    }
     public void Enable() { tileEnabled = true; } 
 	
 	private List<Tile> AssignNeighbors() {
@@ -225,15 +237,25 @@ public class Tile : MonoBehaviour {
         AddTooltipText("------", tooltipFontSize);
         if(boardItem != null) {
             ItemInfo itemInfo = boardItem.GetComponent<ItemComponent>().Item.Info;
-            Text itemName = AddTooltipText(itemInfo.ItemName.ToUpper() + " (" + itemInfo.ItemType + ")", tooltipFontSize*1.25f);
+            Text itemName = AddTooltipText(itemInfo.ItemName.ToUpper() + " (" + Item.TypeName + ")", tooltipFontSize*1.25f);
             itemName.fontStyle = FontStyle.Bold;
             if(Item is Colored) itemName.color = (Item as Colored).ItemColor.Color;
             AddTooltipText(itemInfo.ItemDescription, tooltipFontSize);
             AddTooltipText(itemInfo.ScoreDescription, tooltipFontSize);
             AddTooltipText("------", tooltipFontSize*1.25f);
+            if(Item is Crop) {
+                Crop crop = Item as Crop;
+                harvestText = AddTooltipText("GROWS IN: " + crop.TimeToGrow.ToString(), tooltipFontSize*1.15f);
+            }
         }
         scoreText = AddTooltipText("SCORETEXT", tooltipFontSize*1.25f);
         GetScore(); // also updates scoretext
+    }
+
+    public void UpdateHarvestText(int time) {
+        if(harvestText != null) {
+            harvestText.text = "GROWS IN: " + time;
+        }
     }
 
     private string ToolTipScoreText(int score) {
@@ -246,5 +268,12 @@ public class Tile : MonoBehaviour {
         else score = 0;
         scoreText.text = ToolTipScoreText(score);
         return score;
+    }
+
+    public void Harvested() {
+        Crop crop = Item as Crop;
+        scoreAdd(crop.Harvest());
+        UpdateTooltip();
+        cropHarvested();
     }
 }

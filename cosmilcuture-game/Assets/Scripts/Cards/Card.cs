@@ -75,7 +75,7 @@ public class Card : MonoBehaviour {
     public void UpdateCard() {
         Item i = ic.Item;
 
-        string itemType = cardType.text = i.Info.ItemType;
+        string itemType = i.TypeName;
 
         cardName.text = i.Info.ItemName;
         cardImage.sprite = i.Sprite;
@@ -88,6 +88,7 @@ public class Card : MonoBehaviour {
             cardType.text = itemType + " (" + c.ItemColor.ToString() + ")";
         }
         else {
+            cardImage.color = Color.white;
             cardType.text = itemType;
         }
         

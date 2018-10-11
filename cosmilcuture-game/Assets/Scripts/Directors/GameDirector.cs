@@ -152,7 +152,7 @@ public class GameDirector : MonoBehaviour {
 
     Item RandomItem() {
         // Item type
-        int n = Random.Range(0,2);
+        int n = Random.Range(0,3);
         ItemColor ic;
         int nn;
         switch(n) {
@@ -177,6 +177,16 @@ public class GameDirector : MonoBehaviour {
                     case 1: return new Fruit(ic);
                     case 2: return new Vegetable(ic);
                     default: throw new System.Exception("Unknown number chosen in RandomItemColor during Crop selection: " + nn);
+                }
+            case 2:
+                nn = Random.Range(0,5);
+                switch(nn) {
+                    case 0: return new Hive();
+                    case 1: return new Obelisk();
+                    case 2: return new Tent();
+                    case 3: return new Meteorite();
+                    case 4: return new Picnic();
+                    default: throw new System.Exception("Unknown number chosen in RandomItemColor during Decor selection: " + nn);
                 }
             default:
                 throw new System.Exception("Unknown number chosen in RandomItemColor during item class selection: " + n);
@@ -268,7 +278,7 @@ public class GameDirector : MonoBehaviour {
 
     public void UpdateScore(int newScore) {
         score = newScore;
-        scoreText.text = newScore.ToString();
+        scoreText.text = score.ToString();
     }
 
     private IEnumerator FadeTo(CanvasGroup cg, float avalue, float atime) {

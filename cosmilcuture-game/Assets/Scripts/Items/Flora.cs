@@ -22,6 +22,7 @@ public abstract class Flora : Item, Colored {
         get;
         set;
     }
+    public override string TypeName { get { return "Flora"; }}
 }
 
 public class Magnolium : Flora, Timed {
@@ -53,7 +54,7 @@ public class Magnolium : Flora, Timed {
             "A weak sapling, reaching out for life from the planet's rich humus.";
         string scoreDescrip =
             baseScore + " Harmony plus " + pointsPerTurn + " Harmony per turn spent on the board.";
-        info = new ItemInfo(name, "Flora", ic.ToString(), itemDescripYoung, scoreDescrip);
+        info = new ItemInfo(name, ic.ToString(), itemDescripYoung, scoreDescrip);
     }
 
     // Method overrides
@@ -130,10 +131,10 @@ public class Glowlilies : Flora {
         
         string name = "Glowlilies";
         string itemDescrip =
-            "A menagerie of dainty floral specimins, flopping out with brilliant white leaves, speckled with " + itemColor.ToString() + ".";
+            "A menagerie of dainty floral specimins, flopping out with brilliant white leaves speckled with " + itemColor.ToString() + "patterns.";
         string scoreDescrip =
             baseScore + " Harmony, plus " + scoreInWater + " if placed in a water tile, " + scoreAdjacentWater + " for each adjacent water tile.";
-        info = new ItemInfo(name, "Flora", ic.ToString(), itemDescrip, scoreDescrip);
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
     public override ItemInfo Info {
         get { return info; }
@@ -190,10 +191,10 @@ public class Gargantua : Flora {
 
         string name = "Gargantua";
         string itemDescrip =
-            "A massive flower, spreading over 5 Distance Units across. Floppy " + itemColor.ToString() + " leaves seem to breathe independent of the breeze. Or is that just an illusion?";
+            "A massive flower, spreading over 5 Distance Units across. Floppy " + itemColor.ToString() + " leaves seem to breathe independent of the breeze.";
         string scoreDescrip =
             baseScore + " Harmony, minus " + scoreAdjacentFlora + " for each adjacent flora.";
-        info = new ItemInfo(name, "Flora", ic.ToString(), itemDescrip, scoreDescrip);
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -243,7 +244,7 @@ public class Flytrap : Flora {
     private ItemColor itemColor;
 
     // 1/chanceDenom chance of eating adjacent crop
-    private int chanceDenom = 3;
+    private int chanceDenom = 1;
 
     public Flytrap(ItemColor ic) {
         itemColor = ic;
@@ -253,10 +254,10 @@ public class Flytrap : Flora {
 
         string name = "Giant Saturn Flytrap";
         string itemDescrip =
-            "Big ol flytrap.";
+            "A hungry beast, standing proud on a dark stalk. Its " + ic.ToString() + " head snaps wildly with fleshy teeth at passerbys.";
         string scoreDescrip =
-            baseScore + " Harmony. Each turn there is a one in " + chanceDenom + " chance that the flytrap will consume an adjacent crop plant.";
-        info = new ItemInfo(name, "Flora", ic.ToString(), itemDescrip, scoreDescrip);
+            baseScore + " Harmony. Each turn there is a 1/" + chanceDenom + " chance that the flytrap will consume an adjacent crop plant.";
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -314,7 +315,7 @@ public class Shrub : Flora {
     private int baseScore = 10;
     private ItemColor itemColor;
     
-    private int chanceDenom = 1;
+    private int chanceDenom = 4;
 
     public Shrub(ItemColor ic) {
         itemColor = ic;
@@ -324,10 +325,10 @@ public class Shrub : Flora {
 
         string name = "SuperShrub";
         string itemDescrip =
-            "Big ol shrub";
+            "A thick, tangled ball of branches rooted firmly in the earth. It slowly spreads across the surrounding ground, its arms too thick to trim.";
         string scoreDescrip =
-            baseScore + " Harmony.";
-        info = new ItemInfo(name, "Flora", ic.ToString(), itemDescrip, scoreDescrip);
+            baseScore + " Harmony. Every turn, there is a 1/" + chanceDenom + " chance that the shrub will take over a neighboring flora tile.";
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -360,18 +361,15 @@ public class Shrub : Flora {
         return baseScore;
     }
 
-    // 1/4 chance of spreading to adjacent non-water tile
+    // 1/4 chance of spreading to adjacent flora tile
     public override void Increment() {
         int r = Random.Range(0,chanceDenom);
         if(r == 0) {
-            Debug.Log("getting this shrub");
             List<Tile> validNeighbors = new List<Tile>();
             foreach(Tile neighbor in tile.neighbors) {
-                Debug.Log("Checking on neighboring tile " + neighbor.name + ", " + neighbor.tileType + " from " + tile.name);
-                if(!(neighbor.tileType is WaterTile)) validNeighbors.Add(neighbor);
+                if(neighbor.Item is Flora) validNeighbors.Add(neighbor);
             }
             if(validNeighbors.Count > 1) {
-                Debug.Log("Valid neighbors for " + tile.gameObject.name + ": " + validNeighbors.Count);
                 int rn = Random.Range(0,validNeighbors.Count-1);
                 if(!(validNeighbors[rn].Item is Shrub)) validNeighbors[rn].ChangeItem(new Shrub(itemColor));
             }

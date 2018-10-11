@@ -12,7 +12,7 @@ public class BoardDirector : MonoBehaviour {
     private GameObject tilesObj;
     private GameObject itemsObj;
     // Tiles and item objects themselves
-    private List<GameObject> tiles;
+    public List<GameObject> tiles;
     private List<GameObject> items;
 
     private GameObject tooltips;
@@ -20,6 +20,7 @@ public class BoardDirector : MonoBehaviour {
 
     private GameState gameState;
 
+    private int addedScore;
     public delegate void UpdateScore(int newScore);
     public event UpdateScore updateScore;
 
@@ -32,6 +33,8 @@ public class BoardDirector : MonoBehaviour {
         board = GameObject.Find("Board");
         tilesObj = GameObject.Find("Tiles");
         itemsObj = GameObject.Find("Items");
+
+        addedScore = 0;
 
         tiles = GetTiles();
         SetTileTypes();
@@ -119,8 +122,13 @@ public class BoardDirector : MonoBehaviour {
     }
 
     public void ScoreChange() {
-        int score = 0;
+        int score = addedScore;
         foreach(GameObject tile in tiles) score += tile.GetComponent<Tile>().GetScore();
         updateScore(score);
+    }
+
+    public void AddScore(int addScore) {
+        addedScore += addScore;
+        ScoreChange();
     }
 }

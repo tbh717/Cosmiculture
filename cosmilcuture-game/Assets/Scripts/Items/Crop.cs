@@ -16,12 +16,25 @@ public abstract class Crop : Item, Colored, Timed {
         get;
         set;
     }
-    
-    public bool TimeToHarvest() {
-        return (Turns >= GrowTime);
+    public int TimeToGrow {
+        get { return Mathf.Max(0, GrowTime - Turns); }
     }
-    public int HarvestScore() {
-        return ColorScore() + TileScore() + BaseScore;
+    public abstract int BaseHarvestScore {
+        get;
+    }
+    public bool Harvestable {
+        get { return (Turns >= GrowTime); }
+    }
+    public int HarvestScore {
+        get { return ColorScore() + TileScore() + BaseHarvestScore; }
+    }
+    public int Harvest() {
+        GrowTime = Turns+GrowTime;
+        return HarvestScore;
+    }
+    public override void Increment() {
+        Turns++;
+        Tile.UpdateHarvestText(TimeToGrow);
     }
 
     public override int TileScore() {
@@ -38,6 +51,8 @@ public abstract class Crop : Item, Colored, Timed {
         return score;
     }
     public new int Score() { return ItemScore() + TileScore() + ColorScore(); }
+    
+    public override string TypeName { get { return "Crop"; }}
 }
 
 public class Mushroom : Crop {
@@ -48,25 +63,26 @@ public class Mushroom : Crop {
     private AudioClip audio;
     private ItemColor itemColor;
     private int turns;
+    private int growTime = 5;
 
     // Scoring
     private int pointsPerTurn = 2;
-    private int baseScore = 12;
-    private int growTime = 5;
+    private int baseScore = 0;
+    private int baseHarvestScore = 6;
 
     public Mushroom(ItemColor ic) {
         itemColor = ic;
         turns = 0;
 
         sprite = Resources.Load<Sprite>("Sprites/Items/Mushroom");
-        audio = Resources.Load<AudioClip>("Sounds/Items/Magnolium");
+        audio = Resources.Load<AudioClip>("Sounds/Items/Mushroom");
         
         string name = "Mushroom";
-        string itemDescripYoung =
-            "Mushrooms!";
+        string itemDescrip =
+            "Bulbous heads, gritty to the touch, and sparkling " + ic.ToString() + " iridescent. Almost as alien as the fungi on Earth.";
         string scoreDescrip =
-            baseScore + " Harmony plus " + pointsPerTurn + " Harmony per turn spent on the board.";
-        info = new ItemInfo(name, "Crop", ic.ToString(), itemDescripYoung, scoreDescrip);
+            baseHarvestScore + " Harmony on harvest. " + pointsPerTurn + " Harmony per turn on the board.";
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -88,6 +104,9 @@ public class Mushroom : Crop {
     public override int BaseScore {
         get { return baseScore; }
         set { baseScore = value; }
+    }
+    public override int BaseHarvestScore {
+        get { return baseHarvestScore; }
     }
     public override int Turns {
         get { return turns; }
@@ -106,10 +125,6 @@ public class Mushroom : Crop {
     public override int ItemScore() {
         return pointsPerTurn * turns;
     }
-
-    public override void Increment() {
-        turns++;
-    }
 }
 
 public class Fruit : Crop {
@@ -120,25 +135,26 @@ public class Fruit : Crop {
     private AudioClip audio;
     private ItemColor itemColor;
     private int turns;
+    private int growTime = 5;
 
     // Scoring
     private float pointsPerTurn = 1.5f;
-    private int baseScore = 12;
-    private int growTime = 5;
+    private int baseScore = 0;
+    private int baseHarvestScore = 4;  
 
     public Fruit(ItemColor ic) {
         itemColor = ic;
         turns = 0;
 
         sprite = Resources.Load<Sprite>("Sprites/Items/Fruit");
-        audio = Resources.Load<AudioClip>("Sounds/Items/Magnolium");
+        audio = Resources.Load<AudioClip>("Sounds/Items/Fruit");
         
         string name = "Fruit";
-        string itemDescripYoung =
-            "Fruit!";
+        string itemDescrip =
+            "Glistening " + ic.ToString() + " lumpy fruits. Many in number, they weigh heavy on outstretched fractal branches.";
         string scoreDescrip =
-            baseScore + " Harmony plus " + pointsPerTurn + " Harmony per turn spent on the board.";
-        info = new ItemInfo(name, "Crop", ic.ToString(), itemDescripYoung, scoreDescrip);
+            baseHarvestScore + " Harmony on harvest. " + pointsPerTurn + " Harmony per turn on the board.";
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -160,6 +176,9 @@ public class Fruit : Crop {
     public override int BaseScore {
         get { return baseScore; }
         set { baseScore = value; }
+    }
+    public override int BaseHarvestScore {
+        get { return baseHarvestScore; }
     }
     public override int Turns {
         get { return turns; }
@@ -178,10 +197,6 @@ public class Fruit : Crop {
     public override int ItemScore() {
         return Mathf.FloorToInt(pointsPerTurn * turns);
     }
-
-    public override void Increment() {
-        turns++;
-    }
 }
 
 public class Vegetable : Crop {
@@ -192,25 +207,26 @@ public class Vegetable : Crop {
     private AudioClip audio;
     private ItemColor itemColor;
     private int turns;
+    private int growTime = 3;
 
     // Scoring
     private float pointsPerTurn = 0.5f;
     private int baseScore = 0;
-    private int growTime = 3;
+    private int baseHarvestScore = 3;
 
     public Vegetable(ItemColor ic) {
         itemColor = ic;
         turns = 0;
 
         sprite = Resources.Load<Sprite>("Sprites/Items/Vegetable");
-        audio = Resources.Load<AudioClip>("Sounds/Items/Magnolium");
+        audio = Resources.Load<AudioClip>("Sounds/Items/Vegetable");
         
         string name = "Vegetable";
-        string itemDescripYoung =
-            "Vegetable!";
+        string itemDescrip =
+            "Rooted vegetables, displaying a hearty " + ic.ToString() + " skin. Great in spacey soups.";
         string scoreDescrip =
-            baseScore + " Harmony plus " + pointsPerTurn + " Harmony per turn spent on the board.";
-        info = new ItemInfo(name, "Crop", ic.ToString(), itemDescripYoung, scoreDescrip);
+            baseScore + " Harmony on harvest." + pointsPerTurn + " Harmony per turn spent on the board.";
+        info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 
     // Method overrides
@@ -233,6 +249,9 @@ public class Vegetable : Crop {
         get { return baseScore; }
         set { baseScore = value; }
     }
+    public override int BaseHarvestScore {
+        get { return baseHarvestScore; }
+    }
     public override int Turns {
         get { return turns; }
         set { turns = value; }
@@ -249,9 +268,5 @@ public class Vegetable : Crop {
     // Called if Item still exists at end of game
     public override int ItemScore() {
         return Mathf.FloorToInt(turns * pointsPerTurn);
-    }
-
-    public override void Increment() {
-        turns++;
     }
 }

@@ -43,7 +43,6 @@ public class ItemInfo {
     private string itemName;
     private string itemDescrip;
     private string scoreDescrip;
-    private string itemType;
     private string itemColor;
 
     public string ItemName {
@@ -52,14 +51,6 @@ public class ItemInfo {
         }
         set {
             itemName = value;
-        }
-    }
-    public string ItemType {
-        get {
-            return itemType;
-        }
-        set {
-            itemType = value;
         }
     }
     public string ItemColor {
@@ -87,9 +78,8 @@ public class ItemInfo {
         }
     }
 
-    public ItemInfo(string n, string t, string c, string id, string sd) {
+    public ItemInfo(string n, string c, string id, string sd) {
         itemName = n;
-        itemType = t;
         itemColor = c;
         itemDescrip = id;
         scoreDescrip = sd;
@@ -106,6 +96,9 @@ public abstract class Item : System.ICloneable {
 
     // The name of the tree
     public abstract ItemInfo Info {
+        get;
+    }
+    public abstract string TypeName {
         get;
     }
     public abstract Tile Tile {
