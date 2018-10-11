@@ -1,6 +1,6 @@
-cosmiculture-game/Temp/
-cosmiculture-game/Library/
-cosmiculture-game/.vscode
+Temp/
+Library/
+.vscode
 *.svd
 *.userprefs
 cosmiculture-game/*.csproj
