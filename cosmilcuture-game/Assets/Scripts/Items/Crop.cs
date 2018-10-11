@@ -29,7 +29,7 @@ public abstract class Crop : Item, Colored, Timed {
         get { return ColorScore() + TileScore() + BaseHarvestScore; }
     }
     public int Harvest() {
-        GrowTime = Turns+GrowTime;
+        GrowTime = Turns+GrowTime+1;
         return HarvestScore;
     }
     public override void Increment() {
@@ -44,13 +44,13 @@ public abstract class Crop : Item, Colored, Timed {
     public int ColorScore() {
         int score = 0;
         foreach(Tile neighbor in Tile.neighbors) {
-            if(neighbor.Item is Colored) {
-                if(ItemColor == (neighbor.Item as Colored).ItemColor) score +=2;
-            }
+            if(neighbor.Item is Colored) if(ItemColor.Equals((neighbor.Item as Colored).ItemColor)) score += 2;
         }
         return score;
     }
-    public new int Score() { return ItemScore() + TileScore() + ColorScore(); }
+    public override int Score() { 
+        return ItemScore() + TileScore() + ColorScore(); 
+    }
     
     public override string TypeName { get { return "Crop"; }}
 }
@@ -225,7 +225,7 @@ public class Vegetable : Crop {
         string itemDescrip =
             "Rooted vegetables, displaying a hearty " + ic.ToString() + " skin. Great in spacey soups.";
         string scoreDescrip =
-            baseScore + " Harmony on harvest." + pointsPerTurn + " Harmony per turn spent on the board.";
+            baseHarvestScore + " Harmony on harvest." + pointsPerTurn + " Harmony per turn spent on the board.";
         info = new ItemInfo(name, ic.ToString(), itemDescrip, scoreDescrip);
     }
 

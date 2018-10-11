@@ -36,6 +36,7 @@ public class InteractionDirector : MonoBehaviour {
 
     public void CardboxSelected(Cardbox cardbox) {
         selectedCardbox = cardbox;
+        
         cbmt.GetComponent<Image>().sprite = selectedCardbox.itemImage.sprite;
         cbmt.GetComponent<Image>().color = selectedCardbox.itemImage.color;
 

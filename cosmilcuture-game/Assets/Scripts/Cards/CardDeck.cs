@@ -17,7 +17,7 @@ public class CardDeck : MonoBehaviour {
 
     public void AddCard(GameObject card) {
         // Add card to selected deck
-        card.transform.SetParent(selectedDeckCards.transform, false);
+        card.transform.SetParent(selectedDeckCards.transform, true);
         card.transform.position = selectedDeckCards.transform.position;
         card.SetActive(false);
 
