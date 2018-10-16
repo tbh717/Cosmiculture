@@ -18,15 +18,13 @@ public class Card : MonoBehaviour {
     private Color selectedColor = new Color32(175, 255, 175, 255);
 
     private Button button;
-
-    Color purpleColor = new Color32(145,80,190,255);
-    Color yellowColor = new Color32(250,200,60,255);
-    Color redColor = new Color32(225,70,90,255);
     
-    Color floraColor = new Color32(255, 140, 80, 255);
-    Color cropColor = new Color32(75, 175, 80, 255);
-    Color decorColor = new Color32(160, 140, 255, 255);
+    // Colors for "type boxes" displayed at bottom of card
+    static Color floraColor = new Color32(255, 140, 80, 255);
+    static Color cropColor = new Color32(75, 175, 80, 255);
+    static Color decorColor = new Color32(160, 140, 255, 255);
 
+    // Properties pertaining to selection on the CardSelect screen
     private bool canSelect;
     private bool isSelected;
 
@@ -41,10 +39,11 @@ public class Card : MonoBehaviour {
 
 	// Use this for initialization
 	void Start() {
-        // Assumes that card also has itemObject placed on it
-		 ic = GetComponent<ItemComponent>();
+        // ItemComponent corresponds to Card prefab, so this assumes that it is there
+        ic = GetComponent<ItemComponent>();
 
-         foreach(Transform child in transform) {
+        // Fetches each child, as part of prefab
+        foreach(Transform child in transform) {
             GameObject go = child.gameObject;
             if(go.name == "CardName") cardName = go.GetComponent<Text>();
             if(go.name == "Image") cardImage = go.GetComponent<Image>();
@@ -59,19 +58,19 @@ public class Card : MonoBehaviour {
                 cardTypePanel = go.GetComponent<Image>();
                 cardType = go.GetComponentInChildren<Text>();
             }
-         }
+        }
 
-         isSelected = false;
-         canSelect = true;
+        isSelected = false;
+        canSelect = true;
 
-         defaultColor = GetComponent<Image>().color;
+        defaultColor = GetComponent<Image>().color;
 
-         // Link to attached button
-         button = GetComponent<Button>();
-         button.onClick.AddListener(Select);
+        // Link to attached button
+        button = GetComponent<Button>();
+        button.onClick.AddListener(Select);
 	}
 
-    // Pulls from itemObject to update card info
+    // Pulls from itemObject to update card info and appearance
     public void UpdateCard() {
         Item i = ic.Item;
 
@@ -105,6 +104,8 @@ public class Card : MonoBehaviour {
         }
     }
 
+    // Called when card button is clicked
+    // Color is handled by button component
     public void Select() {
         if(canSelect) isSelected = !isSelected;
         if(isSelected) GetComponent<Image>().color = selectedColor;

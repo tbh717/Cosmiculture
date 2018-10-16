@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/* Used in final scene to display score */
+
 public class EndGame : MonoBehaviour {
 
     int score;

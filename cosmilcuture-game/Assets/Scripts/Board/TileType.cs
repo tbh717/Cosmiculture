@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// General tile type interface, to be implemented by the Tile script on board tiles
 public abstract class TileType {
     public abstract Sprite Sprite {
         get;

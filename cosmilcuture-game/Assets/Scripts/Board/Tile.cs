@@ -25,7 +25,6 @@ public class Tile : MonoBehaviour {
     Text harvestText;
 
     Color hoverColor;
-    Color hoverNeighborColor;
 
     public bool tileEnabled;
 
@@ -44,15 +43,17 @@ public class Tile : MonoBehaviour {
     public event TileItemUpdate itemPlaced;
     public event TileItemUpdate itemRemoved;
 
-    // Score updating
+    // Announced whenever new item is added, item is changed, or item evolves
     public delegate void ScoreChange();
     public event ScoreChange scoreChange;
+    // Adds permanent score (from activities like harvesting) to score board
     public delegate void AddScore(int addScore);
     public event AddScore scoreAdd;
 
     public delegate void CropHarvested();
     public event CropHarvested cropHarvested;
 
+    // Return item from active boardItem GameObject
     public Item Item {
         get {
             if(boardItem != null) return boardItem.GetComponent<ItemComponent>().Item;
@@ -60,8 +61,8 @@ public class Tile : MonoBehaviour {
         }
     }
 
-	// Use this for initialization
 	void Start() {
+        // Assumes that tiles are children of board object
         gameBoard = transform.parent.gameObject;
 
         sr = transform.GetComponent<SpriteRenderer>();
@@ -76,7 +77,6 @@ public class Tile : MonoBehaviour {
         itemsObj = GameObject.Find("Items");
 
         hoverColor = new Color(0.5f,0.5f,0.5f);
-        hoverNeighborColor = new Color(1f, 0.6f, 0.6f);
 
         director = GameObject.Find("Director");
         id = director.GetComponent<InteractionDirector>();
@@ -94,15 +94,21 @@ public class Tile : MonoBehaviour {
 
         cropHarvested += ad.HarvestedCrop;
 
+        // Disables a tile upon instantiation (because game begins in CardSelect screen)
         Disable();
 	}
 
+    // Disables interaction with tile, usually called upon leaving Gameplay state
     public void Disable() { 
         tileEnabled = false;
+        // Unfocuses tile in the event that the mouse was hovering over tile while turn ended
         onTileUnfocus(this);
     }
+    // Enables interaction with tile, usually called upon entering Gameplay state
     public void Enable() { tileEnabled = true; } 
 	
+    // Gathers neighbors using colliders, because tiles are not UI elements
+    // Make sure to test neighbors upon changes of game scale, in the event that colliders grow too large or small relative to other tiles
 	private List<Tile> AssignNeighbors() {
         LayerMask hexLayer = LayerMask.NameToLayer("Hex");
         Collider2D[] overlappingColliders = Physics2D.OverlapBoxAll(
@@ -123,6 +129,7 @@ public class Tile : MonoBehaviour {
 
     /* MOUSE INTERACTION */
 
+    // Display tooltip when mouse enters tile
     void OnMouseEnter() {
         if(tileEnabled) {
             onTileFocus(this);
@@ -131,6 +138,7 @@ public class Tile : MonoBehaviour {
         }
     }
 
+    // Track mouse position and display tooltip there while mouse is over tile
     void OnMouseOver() {
         if(tileEnabled) {
             Vector2 ttSize = tooltip.GetComponent<RectTransform>().sizeDelta;
@@ -151,29 +159,36 @@ public class Tile : MonoBehaviour {
         }
     }
 
+    // Remove tooltip when mouse enters tile
     void OnMouseExit() {
         onTileUnfocus(this);
         ResetColor();
         tooltip.SetActive(false);
     }
 
+    // Announce that tile has been clicked for the InteractionManager to deal with
     void OnMouseDown() {
         onTileClick(this);
     }
 
+    // Change tile type and sprite
     public void SetTileType(TileType tt) {
         tileType = tt;
         transform.GetComponent<SpriteRenderer>().sprite = tileType.Sprite;
     }
 
+    // Darken on hover
     public void DarkenColor() {
         sr.color = hoverColor;
     }
 
+    // Reset to default color after hovering
     public void ResetColor() {
         sr.color = defaultColor;
     }
 
+    // Add item to tile
+    // Returns true if successful, false otherwise
     public bool AddItem(Item newItem) {
         if(boardItem == null) {
             GameObject bi = Instantiate(itemPrefab, transform.position, Quaternion.identity);
@@ -197,7 +212,7 @@ public class Tile : MonoBehaviour {
         else return false;
     }
 
-    // Returns true if item was successfully removed
+    // Returns true if item was successfully removed, false otherwise
     public bool RemoveItem() {
         if(boardItem != null) {
             itemRemoved(boardItem.GetComponent<ItemComponent>().Item, this);
@@ -208,12 +223,14 @@ public class Tile : MonoBehaviour {
         else return false;
     }
 
-    // Doesn't care if item was there or not
+    // Removes item then adds new one
+    // This is the default interaction, so that items can be changed to any other held item
     public bool ChangeItem(Item newItem) {
         RemoveItem();
         return AddItem(newItem);
     }
 
+    // Adds a vertical block of text to the tile's tooltip
     public Text AddTooltipText(string t, float fs) {
         GameObject tileDescrip = Instantiate(tooltipTextPrefab, transform.position, Quaternion.identity);
         tileDescrip.transform.SetParent(tooltip.transform);
@@ -223,6 +240,9 @@ public class Tile : MonoBehaviour {
         return text;
     }
 
+    // Recreates tooltip from scratch
+    // Simpler than checking for any changes
+    // Comprehensive method for tile initilization w/ tile type, adding item, changing item, etc.
     public void UpdateTooltip() {
         // Delete all text items in tooltip
         foreach(Transform tooltipText in tooltip.transform) {
@@ -230,8 +250,6 @@ public class Tile : MonoBehaviour {
         }
 
         /* SPAWN NEW TEXT ITEMS */
-        // Tile name
-        Text tileName = AddTooltipText("<b>"+tileType.TileName.ToUpper()+"</b>", tooltipFontSize*1.25f);
         // Tile description
         AddTooltipText(tileType.TileText, tooltipFontSize);
         AddTooltipText("------", tooltipFontSize);
@@ -252,12 +270,6 @@ public class Tile : MonoBehaviour {
         GetScore(); // also updates scoretext
     }
 
-    public void UpdateHarvestText(int time) {
-        if(harvestText != null) {
-            harvestText.text = "GROWS IN: " + time;
-        }
-    }
-
     private string ToolTipScoreText(int score) {
         return "<b>" + score + "</b> <i>HARMONY</i>";
     }
@@ -271,9 +283,19 @@ public class Tile : MonoBehaviour {
     }
 
     public void Harvested() {
-        Crop crop = Item as Crop;
-        scoreAdd(crop.Harvest());
-        UpdateTooltip();
-        cropHarvested();
+        if(Item is Crop) {
+            Crop crop = Item as Crop;
+            scoreAdd(crop.Harvest());
+            UpdateTooltip();
+            cropHarvested();
+        }
+        else Debug.Log("Harvested method called on non-crop tile.");
+    }
+
+    // Called by corresponding item
+    public void UpdateHarvestText(int time) {
+        if(harvestText != null) {
+            harvestText.text = "GROWS IN: " + time;
+        }
     }
 }

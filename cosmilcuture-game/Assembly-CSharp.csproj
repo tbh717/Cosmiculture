@@ -58,7 +58,6 @@
      <Compile Include="Assets\Scripts\Cards\Card.cs" />
      <Compile Include="Assets\Scripts\Cards\Cardbox.cs" />
      <Compile Include="Assets\Scripts\Cards\CardDeck.cs" />
-     <Compile Include="Assets\Scripts\Cards\HeldCard.cs" />
      <Compile Include="Assets\Scripts\Directors\AudioDirector.cs" />
      <Compile Include="Assets\Scripts\Directors\BoardDirector.cs" />
      <Compile Include="Assets\Scripts\Directors\GameDirector.cs" />

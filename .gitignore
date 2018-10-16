@@ -1,12 +1,12 @@
-cosmiculture-game/Temp/
-cosmiculture-game/Library/
-cosmiculture-game/.vscode
+Temp/
+Library/
+.vscode
 *.svd
 *.userprefs
-cosmiculture-game/*.csproj
+*.csproj
 *.pidb
 *.suo
-cosmiculture-game/*.sln
+*.sln
 *.user
 *.unityproj
 *.booproj
@@ -17,3 +17,5 @@ cosmiculture-game/*.sln
 .Trashes
 ehthumbs.db
 Thumbs.db
+Cosmiculture.app
+Cosmiculture.exe

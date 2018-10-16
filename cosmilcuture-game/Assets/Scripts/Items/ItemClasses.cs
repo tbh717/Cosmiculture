@@ -87,12 +87,8 @@ public class ItemInfo {
 }
 
 // Item
-public abstract class Item : System.ICloneable {
+public abstract class Item {
     public delegate void RelayMessage(Item item, string message);
-
-    public object Clone() {
-        return this.MemberwiseClone();
-    }
 
     // The name of the tree
     public abstract ItemInfo Info {

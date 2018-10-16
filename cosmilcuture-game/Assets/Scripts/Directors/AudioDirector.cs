@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using GameStates;
 
+/* This script controls all audio interactions, changes, and occurances in the game */
+
 public class AudioDirector : MonoBehaviour {
 
     public AudioClip mainTheme;
@@ -11,8 +13,6 @@ public class AudioDirector : MonoBehaviour {
     public AudioClip tilePlaceEffect;
     public AudioClip tileRemoveEffect;
     public AudioClip harvestEffect;
-
-    private float tileWaitTime;
 
     private float bgVolume;
     private float themeVolume;
@@ -22,15 +22,13 @@ public class AudioDirector : MonoBehaviour {
     private AudioSource bgSource;
     private AudioSource effectSource;
     
-    // Tile name to audio source
+    // Tile name -> audio source
     private Dictionary<string, AudioSource> tileSources;
 
     private Coroutine tileFocusing;
 
     void Start() {
         tileSources = new Dictionary<string, AudioSource>();
-
-        tileWaitTime = 2.0f;
 
         tileVolume = 1f;
         themeVolume = GetThemeVolume();
@@ -52,6 +50,7 @@ public class AudioDirector : MonoBehaviour {
         return newAudio;
     }
 
+    // Switches from game music to card select music
     public void ChangeState(GameState newState) {
         if(newState == GameState.StartGame) {
             PlayBG(true).volume = 0.0f;
@@ -67,13 +66,8 @@ public class AudioDirector : MonoBehaviour {
         }
     }
 
-    private void FadeTheme(bool b, float t) {
-        float v;
-        // If b, fade in, else fade out
-        if(b) v = themeVolume; else v = 0.0f;
-        StartCoroutine(FadeTo(themeSource, v, t));
-    }
-
+    // b = true: fade gameplay sounds in
+    // b = false: fade gameplay sounds out
     private void FadeGameplay(bool b, float t) {
         // If b, fade in, else fade out
         float bgv = b ? bgVolume : 0.0f;
@@ -82,6 +76,7 @@ public class AudioDirector : MonoBehaviour {
         foreach(AudioSource tileSource in tileSources.Values) StartCoroutine(FadeTo(tileSource, tv, t));
     }
 
+    // Randomly plays tile sounds during gameplay
     private IEnumerator TileSounds() {
         while(true) {
             float l = PlayRandomSound();
@@ -89,6 +84,7 @@ public class AudioDirector : MonoBehaviour {
         }
     }
 
+    // Plays random sound, then returns length of clip
     private float PlayRandomSound() {
         if(tileSources.Count > 0) {
             int i = Random.Range(0,tileSources.Count-1);
@@ -102,6 +98,8 @@ public class AudioDirector : MonoBehaviour {
         else return 1f;
     }
 
+    // Fade audio clip in or out
+    // avalue represents the desired sound volume, achieved gradually over atime seconds
     private IEnumerator FadeTo(AudioSource aus, float value, float atime) {
         float vol = aus.volume;
         // Fading from a low value into a high
@@ -122,18 +120,28 @@ public class AudioDirector : MonoBehaviour {
         yield break;
     }
 
+    // Play theme if p = true
     public AudioSource PlayTheme(bool p) {
         if(p) themeSource.Play();
         else themeSource.Stop();
         return themeSource;
     }
 
+    // Play background sounds if p = true
     public AudioSource PlayBG(bool p) {
         if(p) bgSource.Play();
         else bgSource.Stop();
         return bgSource;
     }
 
+    // Called when tile is moused over, focusing in the tile's corresponding audio and playing it repeatedly
+    public void FocusTileAudio(Tile tile) {
+        string tileName = tile.name;
+        foreach(KeyValuePair<string, AudioSource> kv in tileSources) if(kv.Key != tileName) StartCoroutine(FadeTo(kv.Value, tileVolume * 0.15f, 0.5f));
+        tileFocusing = StartCoroutine(TileFocusing(tileName));
+    }
+
+    // Called when mouse leaves tile, returning to regular game sounds
     public void UnfocusTileAudio(Tile tile) {
         if(tileFocusing != null) {
             StopCoroutine(tileFocusing);
@@ -142,12 +150,7 @@ public class AudioDirector : MonoBehaviour {
         }
     }
 
-    public void FocusTileAudio(Tile tile) {
-        string tileName = tile.name;
-        foreach(KeyValuePair<string, AudioSource> kv in tileSources) if(kv.Key != tileName) StartCoroutine(FadeTo(kv.Value, tileVolume * 0.15f, 0.5f));
-        tileFocusing = StartCoroutine(TileFocusing(tileName));
-    }
-
+    // Runs while tile is focused, repeatedly playing corresponding sound
     private IEnumerator TileFocusing(string tileName) {
         if(tileSources.ContainsKey(tileName)) {
             AudioSource focusAudio = tileSources[tileName];
@@ -158,19 +161,24 @@ public class AudioDirector : MonoBehaviour {
         } 
     }
 
-    public float GetBGVolume() {
+    // These methods are called when volume is changing due to added/removed items
+    private float GetBGVolume() {
         int n = tileSources.Count;
+        // The more items added, the smaller the decrease in BG volume
+        // Thus, the first items create the most noticable effect
         return Mathf.Exp(-n * 0.25f);
     }
-    public float GetThemeVolume() {
+    private float GetThemeVolume() {
         return 1-GetBGVolume();
     }
 
-    // Item added
+    // Add item
     public void AddItemAudio(Item item, Tile tile) {
+        // Play item addition effect
         effectSource.PlayOneShot(tilePlaceEffect);
         AudioSource tileSource = AddSource(item.Audio, false, 1f);
         tileSources.Add(tile.name, tileSource);
+        // Update BG and theme volume to reflect added item
         bgVolume = GetBGVolume();
         themeVolume = GetThemeVolume();
         StartCoroutine(FadeTo(themeSource, themeVolume, 2.0f));
@@ -180,6 +188,8 @@ public class AudioDirector : MonoBehaviour {
     public void RemoveItemAudio(Item item, Tile tile) {
         effectSource.PlayOneShot(tileRemoveEffect);
         bool removed = tileSources.Remove(tile.name);
+        bgVolume = GetBGVolume();
+        themeVolume = GetThemeVolume();
         if(!removed) Debug.Log("Failed to remove tile from AudioDirector: " + tile.name);
     }
 

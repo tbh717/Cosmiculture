@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/* Used in start screen. Begins and exits game */
+
 public class StartGame : MonoBehaviour {
 
     AudioDirector ad;

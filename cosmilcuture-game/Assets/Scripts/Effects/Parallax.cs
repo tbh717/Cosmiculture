@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/* Moves BG tile each turn, as if planet is rotating */
+
 public class Parallax : MonoBehaviour {
 
     Material mat;
@@ -25,12 +27,4 @@ public class Parallax : MonoBehaviour {
             mat.SetTextureOffset("_MainTex", offset);
         }
 	}
-
-    void Pause() {
-        scrollEnabled = false;
-    }
-
-    void Unpause() {
-        scrollEnabled = true;
-    }
 }

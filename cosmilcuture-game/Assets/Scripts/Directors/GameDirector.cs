@@ -17,17 +17,18 @@ public class GameDirector : MonoBehaviour {
     public GameObject cardSelectScreen;
     public GameObject cardSelectDeck;
     public List<GameObject> cardSelectCards = new List<GameObject>();
-    private Text cardSelectInstructionText;
     private int cardSelectNum;
 
     private CardDeck cardDeck;
 
+    // States here implement the *STATE* game pattern.
     private GameState state;
-
     GameState State {
         get { return state; }
     }
 
+    // Alerts other directors that the state has changed.
+    // This process implements the *OBSERVER* game pattern.
     public delegate void NewState(GameState state);
     public event NewState newState;
 
@@ -35,7 +36,6 @@ public class GameDirector : MonoBehaviour {
     private BoardDirector bd;
     private AudioDirector ad;
 
-	// Use this for initialization
 	void Start() {
         score = 0;
 		turn = 0;
@@ -50,12 +50,14 @@ public class GameDirector : MonoBehaviour {
         // Find cards in selection deck
         cardSelectDeck = GameObject.Find("CardSelectDeck");
         foreach(Transform cardTransform in cardSelectDeck.transform) cardSelectCards.Add(cardTransform.gameObject);
-        cardSelectInstructionText = GameObject.Find("CardSelectInstructionText").GetComponent<Text>();
+
+        // How many cards can the player select?
         cardSelectNum = 2;
 
         // Add active card deck
         cardDeck = GameObject.Find("CardDeck").GetComponent<CardDeck>();
 
+        // Update directors on new state status
         bd = GetComponent<BoardDirector>();
         id = GetComponent<InteractionDirector>();
         ad = GameObject.Find("AudioController").GetComponent<AudioDirector>();
@@ -67,6 +69,7 @@ public class GameDirector : MonoBehaviour {
         StartCoroutine(InvokeState(GameState.StartGame));
 	}
 
+    // Sets state equal to new state, and alerts directors w/ event.
     public void ChangeState(GameState ns) {
         state = ns;
         newState(ns);
@@ -84,16 +87,19 @@ public class GameDirector : MonoBehaviour {
                 break;
             case GameState.CardSelect:
                 StartCoroutine(InvokeState(GameState.Gameplay));
-                // Spawn new cards in background
-                yield return new WaitForSeconds(1.5f);
+                // Spawn new cards in background, after fading into gameplay screen.
+                // This puts the card spawning out of view of the player.
+                yield return new WaitForSeconds(2.0f);
                 SpawnCards();
                 break;
             case GameState.Gameplay:
                 turn++;
+                // Continue game
                 if(turn < maxTurns) {
                     UpdateTurnText();
                     StartCoroutine(InvokeState(GameState.CardSelect));
                 }
+                // End game
                 else StartCoroutine(InvokeState(GameState.EndGame));
                 break;
             default:
@@ -119,12 +125,14 @@ public class GameDirector : MonoBehaviour {
             case GameState.CardSelect:
                 StartCoroutine(FadeTo(cardSelectScreen.GetComponent<CanvasGroup>(), 1.0f, 1.5f));
                 ChangeState(ns);
-                yield return new WaitForSeconds(1.5f);
+                // Wait for some screen fade in before enabling controls
+                yield return new WaitForSeconds(0.5f);
                 StartCoroutine(CardSelect());
                 break;
             case GameState.Gameplay:
                 StartCoroutine(FadeTo(cardSelectScreen.GetComponent<CanvasGroup>(), 0.0f, 1.5f));
-                yield return new WaitForSeconds(0.5f);
+                // Wait for screen to fade in before activating tile controls
+                yield return new WaitForSeconds(1.0f);
                 ChangeState(ns);
                 StartCoroutine(Gameplay());
                 break;
@@ -212,6 +220,10 @@ public class GameDirector : MonoBehaviour {
         foreach(GameObject cardObj in newCards) {
             GameObject newCardObj = Instantiate(cardObj, cardObj.transform.position, Quaternion.identity);
             newCardObj.GetComponent<ItemComponent>().Item = cardObj.GetComponent<ItemComponent>().Item;
+            newCardObj.GetComponent<RectTransform>().sizeDelta = new Vector2(
+                cardObj.GetComponent<RectTransform>().sizeDelta.x,
+                cardObj.GetComponent<RectTransform>().sizeDelta.y
+            );
             cardDeck.AddCard(newCardObj);
         }
     }
@@ -242,11 +254,9 @@ public class GameDirector : MonoBehaviour {
         // Move onto gameplay
         AddCardsToDeck(selectedCards);
         StartCoroutine(NextState());
+        
         yield break;
     }
-
-    void DisableGameplay() {}
-    void EnableGameplay() {}
 
     IEnumerator Gameplay() {
         while(true) {
@@ -271,16 +281,19 @@ public class GameDirector : MonoBehaviour {
         }
     }
 
+    // Change turn text on a new turn
     private void UpdateTurnText() {
         int turnsLeft = maxTurns - turn;
         turnText.text = turnsLeft.ToString();
     }
 
+    // Update score text
     public void UpdateScore(int newScore) {
         score = newScore;
         scoreText.text = score.ToString();
     }
 
+    // Takes a canvas group with alpha property and fades it into/out of view to avalue over atime seconds.
     private IEnumerator FadeTo(CanvasGroup cg, float avalue, float atime) {
         float alpha = cg.alpha;
         // Fading from a low value into a high
@@ -297,7 +310,7 @@ public class GameDirector : MonoBehaviour {
                 yield return null;
             }
         }
-        
+        // Finally, set alpha value in the event that it was not fully reached with skips in deltaTime.
         cg.alpha = avalue;
         yield break;
     }

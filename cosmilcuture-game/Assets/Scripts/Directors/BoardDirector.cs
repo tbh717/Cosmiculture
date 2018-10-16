@@ -4,21 +4,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using GameStates;
 
-public class BoardDirector : MonoBehaviour {
+/* This script facilitates changes in the game board, and relays them to the game director when necessary */
 
-    private GameObject board;
+public class BoardDirector : MonoBehaviour {
 
     // Objects containing tiles & items
     private GameObject tilesObj;
-    private GameObject itemsObj;
     // Tiles and item objects themselves
     public List<GameObject> tiles;
     private List<GameObject> items;
 
     private GameObject tooltips;
     private GameObject tooltipPrefab;
-
-    private GameState gameState;
 
     private int addedScore;
     public delegate void UpdateScore(int newScore);
@@ -28,28 +25,28 @@ public class BoardDirector : MonoBehaviour {
          return go.name.Substring(0,4) == "Tile";
     }
 
-	// Use this for initialization
 	public void Start () {
-        board = GameObject.Find("Board");
         tilesObj = GameObject.Find("Tiles");
-        itemsObj = GameObject.Find("Items");
 
         addedScore = 0;
 
+        // Get and set tiles
         tiles = GetTiles();
         SetTileTypes();
 
         tooltips = GameObject.Find("Tooltips");
         tooltipPrefab = (GameObject) Resources.Load("Prefabs/UI/Tooltip");
 
+        // Assumes directors are on same GameObject
         updateScore += GetComponent<GameDirector>().UpdateScore;
 
+        // Adds tooltip to each tile
         SpawnTooltips();
+        // Updates tooltips to correspond to tile types
         StartCoroutine(UpdateTooltips());
 	}
     
     public void ChangeState(GameState newState) {
-        gameState = newState;
         if(newState == GameState.Gameplay) {
             foreach(GameObject tile in tiles) {
                 tile.GetComponent<Tile>().Enable();
@@ -80,6 +77,7 @@ public class BoardDirector : MonoBehaviour {
         return tileList;
     }
 
+    // Randomly assigns tile type for each tile in scene
     private void SetTileTypes() {
         // Set tile type
         foreach(GameObject tile in tiles) {
@@ -104,6 +102,7 @@ public class BoardDirector : MonoBehaviour {
         }
     }
 
+    // Spawns tooltips at start of game for each tile
     private void SpawnTooltips() {
         foreach(GameObject tile in tiles) {
             GameObject tooltip = Instantiate(tooltipPrefab, transform.position, Quaternion.identity);
@@ -112,21 +111,22 @@ public class BoardDirector : MonoBehaviour {
             tooltip.SetActive(false);
 
             tile.GetComponent<Tile>().tooltip = tooltip;
-
         }
     }
 
+    // Updates all tooltips with relevant info
     private IEnumerator UpdateTooltips() {
+        // Waits for tooltips to spawn/item info to change
         yield return new WaitForEndOfFrame();
         foreach(GameObject tile in tiles) tile.GetComponent<Tile>().UpdateTooltip();
     }
 
+    // Handles score changes and pushes them up to game director
     public void ScoreChange() {
         int score = addedScore;
         foreach(GameObject tile in tiles) score += tile.GetComponent<Tile>().GetScore();
         updateScore(score);
     }
-
     public void AddScore(int addScore) {
         addedScore += addScore;
         ScoreChange();

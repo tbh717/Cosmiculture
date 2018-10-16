@@ -855,7 +855,7 @@ Prefab:
         type: 2}
       propertyPath: mainTheme
       value: 
-      objectReference: {fileID: 8300000, guid: fd74195723588b84ebad7e72aa7c0e9a, type: 3}
+      objectReference: {fileID: 8300000, guid: 835ed46a9472a24429f9708085a4c2bc, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 46bed960306737f4c9a2c7d36da83dc7, type: 2}
   m_IsPrefabAsset: 0

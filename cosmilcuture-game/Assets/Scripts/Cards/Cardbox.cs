@@ -4,13 +4,17 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+/* These items are the squares at the bottom of the screen that the player selects items from during gameplay */
+/* No corresponding Button component because hover functionaltiy is important */
+
 public class Cardbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler {
 
-    GameObject selectedDeckCards;
+    // This is the particular card (child of the selectedDeckCards object) that we activate upon hovering
     GameObject correspondingCard;
 
     InteractionDirector id;
 
+    // Aesthetic information
     Image boxImage;
     Color defaultColor;
     Color selectedColor;
@@ -28,10 +32,11 @@ public class Cardbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
 
     public GameObject CorrespondingCard {
         get { return correspondingCard; }
+        // This might not be called - but exists if needed
         set { 
             correspondingCard = value; 
             itemImage = transform.GetChild(0).GetComponent<Image>();
-            item = (Item) correspondingCard.GetComponent<ItemComponent>().Item.Clone();
+            item = (Item) correspondingCard.GetComponent<ItemComponent>().Item;
             itemImage.sprite = item.Sprite;
             if(item is Colored) itemImage.color = (item as Colored).ItemColor.Color;
         }
@@ -44,15 +49,16 @@ public class Cardbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
 
 	// Use this for initialization
 	void Start () {
-        selectedDeckCards = GameObject.Find("SelectedDeckCards");
         id = GameObject.Find("Director").GetComponent<InteractionDirector>();
 
         boxImage = GetComponent<Image>();
+
         defaultColor = boxImage.color;
         selectedColor = Color.green;
         selectedColor.a = defaultColor.a;
         hoverColor = selectedColor;
-        hoverColor.a = selectedColor.a - 0.1f;
+        // Hover color is a shade lighter than selected color
+        hoverColor.a = selectedColor.a + 0.1f;
 
         cardboxSelected += id.CardboxSelected;
         cardboxDeselected += id.CardboxDeselected;
