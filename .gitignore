@@ -3,10 +3,10 @@ Library/
 .vscode
 *.svd
 *.userprefs
-cosmiculture-game/*.csproj
+*.csproj
 *.pidb
 *.suo
-cosmiculture-game/*.sln
+*.sln
 *.user
 *.unityproj
 *.booproj

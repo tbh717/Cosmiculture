@@ -240,13 +240,12 @@ public class GameDirector : MonoBehaviour {
             if(Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.Space)) break;
             else yield return new WaitForEndOfFrame();
         }
+        // Deselect each selected card
+        foreach(GameObject cardObj in cardSelectCards) cardObj.GetComponent<Card>().CanSelect = true;
+        foreach(GameObject selectedCardObj in selectedCards) selectedCardObj.GetComponent<Card>().Select();
         // Move onto gameplay
         AddCardsToDeck(selectedCards);
         StartCoroutine(NextState());
-        // Deselect each selected card
-        yield return new WaitForSeconds(2.0f);
-        foreach(GameObject cardObj in cardSelectCards) cardObj.GetComponent<Card>().CanSelect = true;
-        foreach(GameObject selectedCardObj in selectedCards) selectedCardObj.GetComponent<Card>().Select();
         yield break;
     }
 

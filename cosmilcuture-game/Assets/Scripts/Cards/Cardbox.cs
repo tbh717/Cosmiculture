@@ -59,7 +59,6 @@ public class Cardbox : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler,
 	}
 
     public void OnPointerClick(PointerEventData pointerEventData) {
-        Debug.Log("Clicked!");
         isSelected = !isSelected;
         if(isSelected) {
             cardboxSelected(this);
